@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { CodeBlock } from './components/CodeBlock';
@@ -171,9 +170,12 @@ hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style
 
   return (
     <div className="flex flex-col h-screen bg-slate-800 font-sans">
-        <header className="bg-slate-900/70 backdrop-blur-sm p-4 border-b border-slate-700 shadow-md flex items-center justify-center sticky top-0 z-10">
-            <ChartIcon className="w-6 h-6 mr-3 text-teal-400" />
-            <h1 className="text-lg sm:text-xl font-bold text-slate-100">Trend Line generator</h1>
+        <header className="bg-slate-900/70 backdrop-blur-sm p-4 border-b border-slate-700 shadow-md flex items-center justify-between sticky top-0 z-10">
+            <div className="flex items-center">
+                <ChartIcon className="w-6 h-6 mr-3 text-teal-400" />
+                <h1 className="text-lg sm:text-xl font-bold text-slate-100">Trend Line generator</h1>
+            </div>
+            <FloatingHelpButton onClick={() => setIsHelpModalOpen(true)} />
         </header>
 
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
@@ -215,7 +217,6 @@ hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style
             </button>
             </form>
         </footer>
-        <FloatingHelpButton onClick={() => setIsHelpModalOpen(true)} />
         <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
     </div>
   );
