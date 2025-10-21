@@ -30,6 +30,22 @@ const LoadingIndicator: React.FC = () => (
     </div>
 );
 
+const LevelsDisplay: React.FC<{ levels: number[] }> = ({ levels }) => (
+    <div className="my-4 p-3 bg-slate-800 border border-slate-700 rounded-lg">
+        <h4 className="text-sm font-semibold text-slate-400 mb-2">Levels:</h4>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
+            {levels.map((level, index) => {
+                return (
+                    <div key={index} className={`p-2 rounded-md flex items-center justify-center ${index === 2 ? 'bg-teal-600 font-bold text-white' : 'bg-slate-700'}`}>
+                        <p className="font-mono text-sm sm:text-base">{level.toLocaleString()}</p>
+                    </div>
+                );
+            })}
+        </div>
+    </div>
+);
+
+
 const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
     const isBot = message.sender === 'bot';
     return (
@@ -58,7 +74,7 @@ const App: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const generatePineScript = useCallback((basePrice: number, forSymbol: string): { script: string } | { error: string } => {
+  const generatePineScript = useCallback((basePrice: number, forSymbol: string): { script: string; levels: number[] } | { error: string } => {
     const base = Math.floor(Math.sqrt(basePrice));
     
     if (base < 2) {
@@ -83,7 +99,7 @@ hline(${adjustedLevels[2]}, "Base Level", color=color.white, linestyle=hline.sty
 hline(${adjustedLevels[3]}, "Level +1", color=color.white, linestyle=hline.style_solid, linewidth=2)
 hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style_solid, linewidth=2)
 `.trim();
-    return { script: scriptContent };
+    return { script: scriptContent, levels: adjustedLevels };
   }, []);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -122,7 +138,8 @@ hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style
       if ('script' in result) {
         botResponse = (
           <div>
-            <p className="mb-2">Here is the Pine Script for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toFixed(2)}:</p>
+            <p className="mb-2">Here is the Pine Script for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
+            <LevelsDisplay levels={result.levels} />
             <CodeBlock code={result.script} />
           </div>
         );
