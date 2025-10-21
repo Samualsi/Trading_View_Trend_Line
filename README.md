@@ -1,7 +1,3 @@
-Here’s a draft **README.md** for your repository Trading_View_Trend_Line. Feel free to adjust wording, sections, and formatting to match your style and any additional details you'd like to include.
-
----
-
 # Trading_View_Trend_Line
 
 A Python-based tool for automatically detecting and drawing trend lines on charts from TradingView, helping traders identify key support and resistance levels.
