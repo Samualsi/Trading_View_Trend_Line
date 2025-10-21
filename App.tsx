@@ -39,9 +39,21 @@ const LevelsDisplay: React.FC<{ levels: number[] }> = ({ levels }) => (
         <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Levels:</h4>
         <div className="grid grid-cols-3 gap-2 text-center">
             {levels.map((level, index) => {
+                const isSupport = index < 4;
                 const isBase = index === 4;
+                const isResistance = index > 4;
+
+                let levelClass = '';
+                if (isBase) {
+                    levelClass = 'bg-yellow-500 font-bold text-yellow-900 dark:bg-yellow-600 dark:text-yellow-100';
+                } else if (isSupport) {
+                    levelClass = 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+                } else if (isResistance) {
+                    levelClass = 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+                }
+                
                 return (
-                    <div key={index} className={`p-2 rounded-md flex items-center justify-center ${isBase ? 'bg-teal-600 font-bold text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'}`}>
+                    <div key={index} className={`p-2 rounded-md flex items-center justify-center ${levelClass}`}>
                         <p className="font-mono text-sm sm:text-base">{level.toLocaleString()}</p>
                     </div>
                 );
@@ -132,15 +144,18 @@ indicator("Trendlines (Generated)", overlay=true)
 // Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
 
 // --- Trend Line Levels ---
-hline(${adjustedLevels[0]}, "Level -4", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[1]}, "Level -3", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[2]}, "Level -2", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[3]}, "Level -1", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[4]}, "Base Level", color=color.new(color.blue, 40), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[5]}, "Level +1", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[6]}, "Level +2", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[7]}, "Level +3", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[8]}, "Level +4", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+// Support Levels
+hline(${adjustedLevels[0]}, "Support 4", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[1]}, "Support 3", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[2]}, "Support 2", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[3]}, "Support 1", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+// Base Level
+hline(${adjustedLevels[4]}, "Base Level", color=color.new(color.yellow, 40), linestyle=hline.style_solid, linewidth=3)
+// Resistance Levels
+hline(${adjustedLevels[5]}, "Resistance 1", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[6]}, "Resistance 2", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[7]}, "Resistance 3", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
 `.trim();
     return { script: scriptContent, levels: adjustedLevels };
   }, []);
