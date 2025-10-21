@@ -139,7 +139,7 @@ const App: React.FC = () => {
 
     const scriptContent = `
 //@version=6
-indicator("Trendlines (Generated)", overlay=true)
+indicator("Support/Resistance Levels (Generated)", overlay=true)
 
 // Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
 
@@ -225,7 +225,7 @@ hline(${adjustedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), line
         <header className="bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm p-4 border-b border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-between sticky top-0 z-10">
             <div className="flex items-center">
                 <ChartIcon className="w-6 h-6 mr-3 text-teal-500 dark:text-teal-400" />
-                <h1 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">Trend Line generator</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">Support &amp; Resistance Generator</h1>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggleButton theme={theme} onToggle={handleThemeToggle} />

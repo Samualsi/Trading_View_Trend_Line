@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pine-script-generator-v1';
+const CACHE_NAME = 'support-resistance-generator-v1';
 // All local assets that make up the app shell.
 const APP_SHELL_URLS = [
   '/',
