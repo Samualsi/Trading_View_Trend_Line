@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { CodeBlock } from './components/CodeBlock';
@@ -36,9 +37,9 @@ const LoadingIndicator: React.FC = () => (
 const LevelsDisplay: React.FC<{ levels: number[] }> = ({ levels }) => (
     <div className="my-4 p-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
         <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Levels:</h4>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
+        <div className="grid grid-cols-3 gap-2 text-center">
             {levels.map((level, index) => {
-                const isBase = index === 2;
+                const isBase = index === 4;
                 return (
                     <div key={index} className={`p-2 rounded-md flex items-center justify-center ${isBase ? 'bg-teal-600 font-bold text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'}`}>
                         <p className="font-mono text-sm sm:text-base">{level.toLocaleString()}</p>
@@ -95,8 +96,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove(theme === 'dark' ? 'light' : 'dark');
-    root.classList.add(theme);
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
     localStorage.setItem('theme', theme);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#1e293b' : '#f1f5f9');
   }, [theme]);
@@ -108,27 +112,35 @@ const App: React.FC = () => {
   const generatePineScript = useCallback((basePrice: number, forSymbol: string): { script: string; levels: number[] } | { error: string } => {
     const base = Math.floor(Math.sqrt(basePrice));
     
-    if (base < 2) {
-      return { error: `Price for ${forSymbol.toUpperCase()} is too low to generate meaningful trend lines (must be >= 4).` };
+    if (base < 4) {
+      return { error: `Price for ${forSymbol.toUpperCase()} is too low to generate meaningful trend lines (must be >= 16).` };
     }
 
     const levels = [
-      (base - 2) * (base - 2), (base - 1) * (base - 1), base * base,
+      (base - 4) * (base - 4), (base - 3) * (base - 3),
+      (base - 2) * (base - 2), (base - 1) * (base - 1), 
+      base * base,
       (base + 1) * (base + 1), (base + 2) * (base + 2),
+      (base + 3) * (base + 3), (base + 4) * (base + 4),
     ];
     const adjustedLevels = levels.map(level => (level % 2 === 0 ? level + 1 : level));
 
     const scriptContent = `
-//@version=6
+//@version=5
 indicator("Trendlines (Generated)", overlay=true)
 
 // Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
 
-hline(${adjustedLevels[0]}, "Level -2", color=color.new(color.gray, 25), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[1]}, "Level -1", color=color.new(color.gray, 25), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[2]}, "Base Level", color=color.new(color.blue, 25), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[3]}, "Level +1", color=color.new(color.gray, 25), linestyle=hline.style_solid, linewidth=2)
-hline(${adjustedLevels[4]}, "Level +2", color=color.new(color.gray, 25), linestyle=hline.style_solid, linewidth=2)
+// --- Trend Line Levels ---
+hline(${adjustedLevels[0]}, "Level -4", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[1]}, "Level -3", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[2]}, "Level -2", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[3]}, "Level -1", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[4]}, "Base Level", color=color.new(color.blue, 40), linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[5]}, "Level +1", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[6]}, "Level +2", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[7]}, "Level +3", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[8]}, "Level +4", color=color.new(color.gray, 50), linestyle=hline.style_solid, linewidth=2)
 `.trim();
     return { script: scriptContent, levels: adjustedLevels };
   }, []);

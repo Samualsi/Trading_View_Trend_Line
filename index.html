@@ -9,6 +9,21 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#1e293b" />
 
+    <script>
+      // Set theme on initial load to avoid FOUC (Flash of Unstyled Content)
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+
+    <script>
+      // Enable class-based dark mode in Tailwind CSS
+      tailwind.config = {
+        darkMode: 'class',
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
   <script type="importmap">
 {

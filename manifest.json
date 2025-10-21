@@ -1,7 +1,7 @@
 {
   "name": "Pine Script Trend Line Generator",
   "short_name": "PineGen",
-  "description": "An application that generates a Pine Script for TradingView to draw five trend lines based on the perfect square root of the current symbol price.",
+  "description": "An application that generates a Pine Script for TradingView to draw nine trend lines based on the perfect square root of the current symbol price.",
   "icons": [
     {
       "src": "/vite.svg",
