@@ -6,9 +6,16 @@ const APP_SHELL_URLS = [
   '/index.tsx',
   '/App.tsx',
   '/components/CodeBlock.tsx',
+  '/components/FloatingHelpButton.tsx',
+  '/components/HelpModal.tsx',
+  '/components/ThemeToggleButton.tsx',
   '/components/icons/CheckIcon.tsx',
   '/components/icons/ChartIcon.tsx',
   '/components/icons/CopyIcon.tsx',
+  '/components/icons/CloseIcon.tsx',
+  '/components/icons/QuestionMarkIcon.tsx',
+  '/components/icons/SunIcon.tsx',
+  '/components/icons/MoonIcon.tsx',
   '/vite.svg'
 ];
 
