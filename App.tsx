@@ -126,7 +126,7 @@ const App: React.FC = () => {
     const adjustedLevels = levels.map(level => (level % 2 === 0 ? level + 1 : level));
 
     const scriptContent = `
-//@version=5
+//@version=6
 indicator("Trendlines (Generated)", overlay=true)
 
 // Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
