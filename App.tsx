@@ -62,10 +62,14 @@ const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
 
 // --- Main App Component ---
 
+const initialMessage: Message = {
+    id: 1,
+    sender: 'bot',
+    content: 'Hello! I can generate a Pine Script for you. Please enter an asset symbol to get started (e.g., BTCUSD, AAPL).'
+};
+
 const App: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-      { id: Date.now(), sender: 'bot', content: 'Hello! I can generate a Pine Script for you. Please enter an asset symbol to get started (e.g., BTCUSD, AAPL).' }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -156,6 +160,11 @@ hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style
       setIsLoading(false);
     }
   };
+  
+  const handleClear = () => {
+    setInputValue('');
+    setMessages([{...initialMessage, id: Date.now()}]);
+  }
 
   return (
     <div className="flex flex-col h-screen bg-slate-800 font-sans">
@@ -191,6 +200,15 @@ hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style
                 aria-label="Send message"
             >
                 {isLoading ? 'Generating...' : 'Generate'}
+            </button>
+            <button
+                type="button"
+                onClick={handleClear}
+                disabled={isLoading || messages.length <= 1}
+                className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500 disabled:bg-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed transition"
+                aria-label="Clear conversation"
+            >
+                Clear
             </button>
             </form>
         </footer>
