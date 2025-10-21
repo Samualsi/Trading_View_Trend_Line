@@ -37,7 +37,7 @@ const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isBot ? 'bg-slate-700' : 'bg-slate-600'}`}>
                 {isBot ? <ChartIcon className="w-5 h-5 text-teal-400" /> : <UserIcon className="w-5 h-5 text-slate-300" />}
             </div>
-            <div className={`p-3 rounded-lg max-w-md ${isBot ? 'bg-slate-700 text-slate-300' : 'bg-teal-600 text-white'}`}>
+            <div className={`p-3 rounded-lg max-w-[85%] sm:max-w-md ${isBot ? 'bg-slate-700 text-slate-300' : 'bg-teal-600 text-white'}`}>
                 {message.content}
             </div>
         </div>
@@ -146,10 +146,10 @@ plot(${adjustedLevels[4]}, "Level +2", color=color.white, style=plot.style_line,
     <div className="flex flex-col h-screen bg-slate-800 font-sans">
         <header className="bg-slate-900/70 backdrop-blur-sm p-4 border-b border-slate-700 shadow-md flex items-center justify-center sticky top-0 z-10">
             <ChartIcon className="w-6 h-6 mr-3 text-teal-400" />
-            <h1 className="text-xl font-bold text-slate-100">Trend Line generator</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-slate-100">Trend Line generator</h1>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           <div className="space-y-6 max-w-2xl mx-auto">
             {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
@@ -158,8 +158,8 @@ plot(${adjustedLevels[4]}, "Level +2", color=color.white, style=plot.style_line,
           <div ref={messagesEndRef} />
         </main>
         
-        <footer className="p-4 bg-slate-800 border-t border-slate-700">
-            <form onSubmit={handleSendMessage} className="flex items-center gap-3 max-w-2xl mx-auto">
+        <footer className="p-3 sm:p-4 bg-slate-800 border-t border-slate-700">
+            <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3 max-w-2xl mx-auto">
             <input
                 type="text"
                 value={inputValue}
