@@ -73,11 +73,9 @@ const App: React.FC = () => {
 
     const scriptContent = `
 //@version=6
-indicator("Perfect Square Trendlines (Generated)", overlay=true)
+indicator("Trendlines (Generated)", overlay=true)
 
 // Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
-// Base perfect square root: ${base}
-// Logic: If a calculated level is an even number, 1 is added to it.
 
 plot(${adjustedLevels[0]}, "Level -2", color=color.white, style=plot.style_line, linewidth=2)
 plot(${adjustedLevels[1]}, "Level -1", color=color.white, style=plot.style_line, linewidth=2)
