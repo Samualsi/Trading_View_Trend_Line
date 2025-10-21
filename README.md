@@ -136,12 +136,4 @@ This project is licensed under the MIT License — see the `LICENSE` file for de
 
 ## 🙏 Acknowledgements
 
-Thanks to [Your Name] for initiating the project. Inspired by manual technical analysis techniques used by many traders in the TradingView community.
-
----
-
-*Last updated: `YYYY-MM-DD`*
-
----
-
-If you like, I can also generate badges (build status, code coverage, Python version support), update the README with installation for pip if you plan to publish, and include example screenshots. Would you like that?
+Thanks for initiating the project. Inspired by manual technical analysis techniques used by many traders in the TradingView community.
