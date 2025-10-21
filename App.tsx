@@ -77,11 +77,11 @@ indicator("Trendlines (Generated)", overlay=true)
 
 // Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
 
-plot(${adjustedLevels[0]}, "Level -2", color=color.white, style=plot.style_line, linewidth=2)
-plot(${adjustedLevels[1]}, "Level -1", color=color.white, style=plot.style_line, linewidth=2)
-plot(${adjustedLevels[2]}, "Base Level", color=color.white, style=plot.style_line, linewidth=3)
-plot(${adjustedLevels[3]}, "Level +1", color=color.white, style=plot.style_line, linewidth=2)
-plot(${adjustedLevels[4]}, "Level +2", color=color.white, style=plot.style_line, linewidth=2)
+hline(${adjustedLevels[0]}, "Level -2", color=color.white, linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[1]}, "Level -1", color=color.white, linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[2]}, "Base Level", color=color.white, linestyle=hline.style_solid, linewidth=3)
+hline(${adjustedLevels[3]}, "Level +1", color=color.white, linestyle=hline.style_solid, linewidth=2)
+hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style_solid, linewidth=2)
 `.trim();
     return { script: scriptContent };
   }, []);
