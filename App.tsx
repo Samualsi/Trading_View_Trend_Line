@@ -1,18 +1,19 @@
-
 import React, { useState, useCallback } from 'react';
+import { GoogleGenAI } from "@google/genai";
 import { CodeBlock } from './components/CodeBlock';
 import { ChartIcon } from './components/icons/ChartIcon';
 
 const App: React.FC = () => {
-  const [price, setPrice] = useState<string>('');
+  const [symbol, setSymbol] = useState<string>('');
   const [script, setScript] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const generatePineScript = useCallback((basePrice: number) => {
+  const generatePineScript = useCallback((basePrice: number, forSymbol: string) => {
     const base = Math.floor(Math.sqrt(basePrice));
     
     if (base < 2) {
-      setError("Price is too low to generate meaningful trend lines. Please enter a price greater than or equal to 4.");
+      setError(`Price for ${forSymbol.toUpperCase()} is too low to generate meaningful trend lines (must be >= 4).`);
       setScript('');
       return;
     }
@@ -28,10 +29,10 @@ const App: React.FC = () => {
     const adjustedLevels = levels.map(level => (level % 2 === 0 ? level + 1 : level));
 
     const scriptContent = `
-//@version=6
+//@version=5
 indicator("Perfect Square Trendlines (Generated)", overlay=true)
 
-// Generated for a price around: ${basePrice}
+// Generated for symbol: ${forSymbol.toUpperCase()} around price: ${basePrice}
 // Base perfect square root: ${base}
 // Logic: If a calculated level is an even number, 1 is added to it.
 
@@ -46,15 +47,47 @@ plot(${adjustedLevels[4]}, "Level +2", color=color.white, style=plot.style_line,
     setError('');
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numericPrice = parseFloat(price);
-    if (isNaN(numericPrice) || numericPrice <= 0) {
-      setError('Please enter a valid, positive number for the price.');
+    if (!symbol.trim()) {
+      setError('Please enter an asset symbol.');
       setScript('');
       return;
     }
-    generatePineScript(numericPrice);
+
+    setIsLoading(true);
+    setError('');
+    setScript('');
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `What is the current price of the asset with the symbol ${symbol}? Respond with only the numerical value, without any currency symbols, commas, or explanatory text.`;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          tools: [{googleSearch: {}}],
+        },
+      });
+
+      const priceText = response.text;
+      const cleanedPriceText = priceText.replace(/[^0-9.]/g, '');
+      const numericPrice = parseFloat(cleanedPriceText);
+
+      if (isNaN(numericPrice) || numericPrice <= 0) {
+        setError(`Could not determine a valid price for "${symbol}". Please check the symbol and try again. The model may not have access to real-time data for this asset.`);
+        return;
+      }
+
+      generatePineScript(numericPrice, symbol);
+
+    } catch (err) {
+      console.error("Error fetching price:", err);
+      setError('Failed to fetch the price from the API. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -65,30 +98,30 @@ plot(${adjustedLevels[4]}, "Level +2", color=color.white, style=plot.style_line,
             <ChartIcon className="h-12 w-12 text-teal-400" />
           </div>
           <h1 className="text-4xl font-bold text-slate-100">Pine Script Trend Line Generator</h1>
-          <p className="text-slate-400 mt-2">Create a TradingView script to draw 5 trend lines based on the square root of a price.</p>
+          <p className="text-slate-400 mt-2">Enter an asset symbol to fetch its price and generate a TradingView script.</p>
         </header>
 
         <main className="bg-slate-800/50 rounded-lg shadow-2xl p-6 md:p-8 backdrop-blur-sm border border-slate-700">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-4 mb-6">
             <div className="relative w-full">
-              <label htmlFor="price" className="sr-only">Current Price</label>
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+              <label htmlFor="symbol" className="sr-only">Asset Symbol</label>
               <input
-                id="price"
-                type="number"
-                step="any"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="Enter current symbol price (e.g., 50000)"
-                className="w-full pl-7 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all text-slate-200 placeholder-slate-500"
+                id="symbol"
+                type="text"
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value)}
+                placeholder="Enter symbol (e.g., BTCUSD, AAPL)"
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all text-slate-200 placeholder-slate-500"
                 required
+                disabled={isLoading}
               />
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors shrink-0"
+              className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
-              Generate Script
+              {isLoading ? 'Fetching Price...' : 'Generate Script'}
             </button>
           </form>
 
