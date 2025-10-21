@@ -33,20 +33,13 @@ const LoadingIndicator: React.FC = () => (
 const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
     const isBot = message.sender === 'bot';
     return (
-        <div className={`flex items-start gap-3 ${isBot ? '' : 'justify-end'}`}>
-            {isBot && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-                    <ChartIcon className="w-5 h-5 text-teal-400" />
-                </div>
-            )}
-            <div className={`p-3 rounded-lg max-w-lg ${isBot ? 'bg-slate-700 text-slate-300' : 'bg-teal-600 text-white'}`}>
+        <div className={`flex items-start gap-3 ${isBot ? '' : 'flex-row-reverse'}`}>
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isBot ? 'bg-slate-700' : 'bg-slate-600'}`}>
+                {isBot ? <ChartIcon className="w-5 h-5 text-teal-400" /> : <UserIcon className="w-5 h-5 text-slate-300" />}
+            </div>
+            <div className={`p-3 rounded-lg max-w-md ${isBot ? 'bg-slate-700 text-slate-300' : 'bg-teal-600 text-white'}`}>
                 {message.content}
             </div>
-            {!isBot && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center">
-                    <UserIcon className="w-5 h-5 text-slate-300" />
-                </div>
-            )}
         </div>
     );
 };
@@ -130,68 +123,62 @@ plot(${adjustedLevels[4]}, "Level +2", color=color.white, style=plot.style_line,
       const result = generatePineScript(numericPrice, symbol);
       if ('script' in result) {
         botResponse = (
-            <div>
-                <p className="mb-4">Here is the Pine Script for {symbol.toUpperCase()}:</p>
-                <CodeBlock code={result.script} />
-                <div className="mt-4 p-3 bg-slate-800 rounded-lg border border-slate-600">
-                  <h3 className="font-semibold text-md text-teal-400 mb-2">How to use:</h3>
-                  <ol className="list-decimal list-inside text-slate-400 space-y-1 text-sm">
-                      <li>Click the 'Copy' button on the script block.</li>
-                      <li>Open your chart on <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer" className="text-teal-500 hover:underline">TradingView</a>.</li>
-                      <li>Open the 'Pine Editor' tab at the bottom.</li>
-                      <li>Paste the script and click 'Add to Chart'.</li>
-                  </ol>
-              </div>
-            </div>
+          <div>
+            <p className="mb-2">Here is the Pine Script for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toFixed(2)}:</p>
+            <CodeBlock code={result.script} />
+          </div>
         );
       } else {
         botResponse = result.error;
       }
-
-    } catch (err) {
-      console.error("Error in bot response generation:", err);
-      botResponse = (err as Error).message || 'An unexpected error occurred. Please try again.';
+    } catch (error: any) {
+      botResponse = error.message || 'An unexpected error occurred. Please try again.';
     } finally {
-      setMessages(prev => prev.filter(m => m.id !== loadingMessageId));
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', content: botResponse }]);
+      setMessages(prev => {
+          const filteredMessages = prev.filter(m => m.id !== loadingMessageId);
+          return [...filteredMessages, { id: Date.now(), sender: 'bot', content: botResponse }];
+      });
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 font-sans flex flex-col p-4">
-      <div className="w-full max-w-2xl mx-auto flex flex-col h-[calc(100vh-2rem)]">
-        <header className="text-center mb-4 shrink-0">
-          <h1 className="text-3xl font-bold text-slate-100">Pine Script Bot</h1>
-          <p className="text-slate-400 mt-1">Chat to generate a TradingView script.</p>
+    <div className="flex flex-col h-screen bg-slate-800 font-sans">
+        <header className="bg-slate-900/70 backdrop-blur-sm p-4 border-b border-slate-700 shadow-md flex items-center justify-center sticky top-0 z-10">
+            <ChartIcon className="w-6 h-6 mr-3 text-teal-400" />
+            <h1 className="text-xl font-bold text-slate-100">Trend Line generator</h1>
         </header>
 
-        <main className="bg-slate-800/50 rounded-lg shadow-2xl backdrop-blur-sm border border-slate-700 flex-grow flex flex-col overflow-hidden">
-            <div className="flex-grow p-4 space-y-4 overflow-y-auto">
-                {messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)}
-                <div ref={messagesEndRef} />
-            </div>
-          
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-700 bg-slate-800/70 flex items-center gap-3">
-              <input
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="space-y-6 max-w-2xl mx-auto">
+            {messages.map((message) => (
+                <ChatMessage key={message.id} message={message} />
+            ))}
+          </div>
+          <div ref={messagesEndRef} />
+        </main>
+        
+        <footer className="p-4 bg-slate-800 border-t border-slate-700">
+            <form onSubmit={handleSendMessage} className="flex items-center gap-3 max-w-2xl mx-auto">
+            <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Enter symbol (e.g., BTCUSD, AAPL)"
-                className="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-full focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all text-slate-200 placeholder-slate-500"
-                required
+                placeholder="Enter an asset symbol (e.g., BTCUSD)"
+                className="flex-1 p-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition w-full"
                 disabled={isLoading}
-              />
-              <button
+                aria-label="Asset symbol input"
+            />
+            <button
                 type="submit"
-                className="px-5 py-2 bg-teal-600 text-white font-semibold rounded-full hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLoading || !inputValue.trim()}
-              >
-                Send
-              </button>
+                className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition"
+                aria-label="Send message"
+            >
+                {isLoading ? 'Generating...' : 'Generate'}
+            </button>
             </form>
-        </main>
-      </div>
+        </footer>
     </div>
   );
 };
