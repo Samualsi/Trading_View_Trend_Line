@@ -3,6 +3,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { CodeBlock } from './components/CodeBlock';
 import { ChartIcon } from './components/icons/ChartIcon';
+import { FloatingHelpButton } from './components/FloatingHelpButton';
+import { HelpModal } from './components/HelpModal';
 
 // --- Type Definitions ---
 type Sender = 'user' | 'bot';
@@ -72,6 +74,7 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -212,6 +215,8 @@ hline(${adjustedLevels[4]}, "Level +2", color=color.white, linestyle=hline.style
             </button>
             </form>
         </footer>
+        <FloatingHelpButton onClick={() => setIsHelpModalOpen(true)} />
+        <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
     </div>
   );
 };
