@@ -6,7 +6,6 @@ import { ChartIcon } from './components/icons/ChartIcon';
 import { FloatingHelpButton } from './components/FloatingHelpButton';
 import { HelpModal } from './components/HelpModal';
 import { ThemeToggleButton } from './components/ThemeToggleButton';
-import { PriceChart } from './components/PriceChart';
 
 // --- Type Definitions ---
 type Sender = 'user' | 'bot';
@@ -55,7 +54,7 @@ const LevelsDisplay: React.FC<{ levels: number[] }> = ({ levels }) => (
                 
                 return (
                     <div key={index} className={`p-2 rounded-md flex items-center justify-center ${levelClass}`}>
-                        <p className="font-mono text-sm sm:text-base">{level.toLocaleString()}</p>
+                        <p className="font-mono text-sm sm:text-base">{level.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                 );
             })}
@@ -136,7 +135,22 @@ const App: React.FC = () => {
       (base + 1) * (base + 1), (base + 2) * (base + 2),
       (base + 3) * (base + 3), (base + 4) * (base + 4),
     ];
-    const adjustedLevels = levels.map(level => (level % 2 === 0 ? level + 1 : level));
+    
+    const getRandomDecimal = () => Math.random() * (0.37 - 0.13) + 0.13;
+
+    const adjustedLevels = levels.map((level, index) => {
+        if (index < 4) { // Support
+            return level - getRandomDecimal();
+        }
+        if (index > 4) { // Resistance
+            return level + getRandomDecimal();
+        }
+        return level; // Base
+    });
+
+    const formatLevel = (level: number) => parseFloat(level.toFixed(2));
+    const formattedLevels = adjustedLevels.map(formatLevel);
+
 
     const scriptContent = `
 //@version=6
@@ -146,19 +160,19 @@ indicator("Support/Resistance Levels (Generated)", overlay=true)
 
 // --- Trend Line Levels ---
 // Support Levels
-hline(${adjustedLevels[0]}, "Support 4", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[1]}, "Support 3", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[2]}, "Support 2", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[3]}, "Support 1", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[0]}, "Support 4", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[1]}, "Support 3", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[2]}, "Support 2", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[3]}, "Support 1", color=color.new(color.green, 50), linestyle=hline.style_solid, linewidth=3)
 // Base Level
-hline(${adjustedLevels[4]}, "Base Level", color=color.new(color.yellow, 40), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[4]}, "Base Level", color=color.new(color.yellow, 40), linestyle=hline.style_solid, linewidth=3)
 // Resistance Levels
-hline(${adjustedLevels[5]}, "Resistance 1", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[6]}, "Resistance 2", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[7]}, "Resistance 3", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
-hline(${adjustedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[5]}, "Resistance 1", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[6]}, "Resistance 2", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[7]}, "Resistance 3", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
+hline(${formattedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), linestyle=hline.style_solid, linewidth=3)
 `.trim();
-    return { script: scriptContent, levels: adjustedLevels };
+    return { script: scriptContent, levels: formattedLevels };
   }, []);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -198,7 +212,6 @@ hline(${adjustedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), line
         botResponse = (
           <div>
             <p className="mb-4">Here is the Support & Resistance for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
-            <PriceChart basePrice={numericPrice} levels={result.levels} theme={theme} />
             <LevelsDisplay levels={result.levels} />
             <CodeBlock code={result.script} />
           </div>
