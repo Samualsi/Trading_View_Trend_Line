@@ -90,6 +90,7 @@ const App: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [symbolHistory, setSymbolHistory] = useState<string[]>([]);
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined' && window.localStorage) {
       const storedTheme = window.localStorage.getItem('theme');
@@ -105,6 +106,17 @@ const App: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    try {
+        const storedHistory = window.localStorage.getItem('symbolHistory');
+        if (storedHistory) {
+            setSymbolHistory(JSON.parse(storedHistory));
+        }
+    } catch (e) {
+        console.error("Failed to parse symbol history from localStorage", e);
+    }
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -174,60 +186,79 @@ hline(${formattedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), lin
 `.trim();
     return { script: scriptContent, levels: formattedLevels };
   }, []);
+  
+  const updateSymbolHistory = (newSymbol: string) => {
+    const normalizedSymbol = newSymbol.toUpperCase();
+    setSymbolHistory(prev => {
+        const newHistory = [normalizedSymbol, ...prev.filter(s => s !== normalizedSymbol)];
+        const limitedHistory = newHistory.slice(0, 5); // Limit to 5 recent symbols
+        localStorage.setItem('symbolHistory', JSON.stringify(limitedHistory));
+        return limitedHistory;
+    });
+  };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const symbol = inputValue.trim();
-    if (!symbol || isLoading) return;
+  const handleSubmitSymbol = async (symbol: string) => {
+      if (!symbol || isLoading) return;
 
-    setIsLoading(true);
-    setInputValue('');
-    
-    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', content: symbol }]);
-    const loadingMessageId = Date.now() + 1;
-    setMessages(prev => [...prev, { id: loadingMessageId, sender: 'bot', content: <LoadingIndicator /> }]);
-
-    let botResponse: React.ReactNode;
-
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `What is the current price of the asset with the symbol ${symbol}? Respond with only the numerical value, without any currency symbols, commas, or explanatory text.`;
+      setIsLoading(true);
+      setInputValue('');
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: { tools: [{ googleSearch: {} }] },
-      });
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'user', content: symbol }]);
+      const loadingMessageId = Date.now() + 1;
+      setMessages(prev => [...prev, { id: loadingMessageId, sender: 'bot', content: <LoadingIndicator /> }]);
 
-      const priceText = response.text;
-      const cleanedPriceText = priceText.replace(/[^0-9.]/g, '');
-      const numericPrice = parseFloat(cleanedPriceText);
+      let botResponse: React.ReactNode;
 
-      if (isNaN(numericPrice) || numericPrice <= 0) {
-        throw new Error(`Could not determine a valid price for "${symbol}". Please check the symbol and try again.`);
+      try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `What is the current price of the asset with the symbol ${symbol}? Respond with only the numerical value, without any currency symbols, commas, or explanatory text.`;
+        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: { tools: [{ googleSearch: {} }] },
+        });
+
+        const priceText = response.text;
+        const cleanedPriceText = priceText.replace(/[^0-9.]/g, '');
+        const numericPrice = parseFloat(cleanedPriceText);
+
+        if (isNaN(numericPrice) || numericPrice <= 0) {
+          throw new Error(`Could not determine a valid price for "${symbol}". Please check the symbol and try again.`);
+        }
+        
+        updateSymbolHistory(symbol);
+
+        const result = generatePineScript(numericPrice, symbol);
+        if ('script' in result) {
+          botResponse = (
+            <div>
+              <p className="mb-4">Here is the Support & Resistance for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
+              <LevelsDisplay levels={result.levels} />
+              <CodeBlock code={result.script} />
+            </div>
+          );
+        } else {
+          botResponse = result.error;
+        }
+      } catch (error: any) {
+        botResponse = error.message || 'An unexpected error occurred. Please try again.';
+      } finally {
+        setMessages(prev => {
+            const filteredMessages = prev.filter(m => m.id !== loadingMessageId);
+            return [...filteredMessages, { id: Date.now(), sender: 'bot', content: botResponse }];
+        });
+        setIsLoading(false);
       }
+  };
 
-      const result = generatePineScript(numericPrice, symbol);
-      if ('script' in result) {
-        botResponse = (
-          <div>
-            <p className="mb-4">Here is the Support & Resistance for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
-            <LevelsDisplay levels={result.levels} />
-            <CodeBlock code={result.script} />
-          </div>
-        );
-      } else {
-        botResponse = result.error;
-      }
-    } catch (error: any) {
-      botResponse = error.message || 'An unexpected error occurred. Please try again.';
-    } finally {
-      setMessages(prev => {
-          const filteredMessages = prev.filter(m => m.id !== loadingMessageId);
-          return [...filteredMessages, { id: Date.now(), sender: 'bot', content: botResponse }];
-      });
-      setIsLoading(false);
-    }
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmitSymbol(inputValue.trim());
+  };
+
+  const handleHistoryClick = (symbol: string) => {
+      handleSubmitSymbol(symbol);
   };
   
   const handleClear = () => {
@@ -259,33 +290,49 @@ hline(${formattedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), lin
         
         <footer className="p-3 sm:p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
             <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3 max-w-2xl mx-auto">
-            <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Enter an asset symbol (e.g., BTCUSD)"
-                className="flex-1 p-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition w-full text-slate-800 dark:text-slate-200"
-                disabled={isLoading}
-                aria-label="Asset symbol input"
-            />
-            <button
-                type="submit"
-                disabled={isLoading || !inputValue.trim()}
-                className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-500 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed transition"
-                aria-label="Send message"
-            >
-                {isLoading ? 'Generating...' : 'Generate'}
-            </button>
-            <button
-                type="button"
-                onClick={handleClear}
-                disabled={isLoading || messages.length <= 1}
-                className="px-4 py-2 bg-slate-500 text-white rounded-md hover:bg-slate-600 dark:hover:bg-slate-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:cursor-not-allowed transition"
-                aria-label="Clear conversation"
-            >
-                Clear
-            </button>
+              <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Enter an asset symbol (e.g., BTCUSD)"
+                  className="flex-1 p-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 transition w-full text-slate-800 dark:text-slate-200"
+                  disabled={isLoading}
+                  aria-label="Asset symbol input"
+              />
+              <button
+                  type="submit"
+                  disabled={isLoading || !inputValue.trim()}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-500 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed transition"
+                  aria-label="Send message"
+              >
+                  {isLoading ? 'Generating...' : 'Generate'}
+              </button>
+              <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={isLoading || messages.length <= 1}
+                  className="px-4 py-2 bg-slate-500 text-white rounded-md hover:bg-slate-600 dark:hover:bg-slate-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:cursor-not-allowed transition"
+                  aria-label="Clear conversation"
+              >
+                  Clear
+              </button>
             </form>
+            {symbolHistory.length > 0 && (
+              <div className="max-w-2xl mx-auto mt-3 flex items-center gap-2 flex-wrap" aria-label="Recent symbols">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Recent:</span>
+                  {symbolHistory.map(symbol => (
+                      <button
+                          key={symbol}
+                          onClick={() => handleHistoryClick(symbol)}
+                          className="px-2.5 py-1 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-sm hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                          disabled={isLoading}
+                          aria-label={`Generate for ${symbol}`}
+                      >
+                          {symbol}
+                      </button>
+                  ))}
+              </div>
+            )}
         </footer>
         <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
     </div>
