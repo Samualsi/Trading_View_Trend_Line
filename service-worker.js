@@ -9,6 +9,7 @@ const APP_SHELL_URLS = [
   '/components/FloatingHelpButton.tsx',
   '/components/HelpModal.tsx',
   '/components/ThemeToggleButton.tsx',
+  '/components/PriceChart.tsx',
   '/components/icons/CheckIcon.tsx',
   '/components/icons/ChartIcon.tsx',
   '/components/icons/CopyIcon.tsx',

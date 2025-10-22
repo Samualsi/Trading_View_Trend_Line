@@ -6,6 +6,7 @@ import { ChartIcon } from './components/icons/ChartIcon';
 import { FloatingHelpButton } from './components/FloatingHelpButton';
 import { HelpModal } from './components/HelpModal';
 import { ThemeToggleButton } from './components/ThemeToggleButton';
+import { PriceChart } from './components/PriceChart';
 
 // --- Type Definitions ---
 type Sender = 'user' | 'bot';
@@ -196,7 +197,8 @@ hline(${adjustedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), line
       if ('script' in result) {
         botResponse = (
           <div>
-            <p className="mb-2">Here is the Support & Resistance for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
+            <p className="mb-4">Here is the Support & Resistance for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
+            <PriceChart basePrice={numericPrice} levels={result.levels} theme={theme} />
             <LevelsDisplay levels={result.levels} />
             <CodeBlock code={result.script} />
           </div>
