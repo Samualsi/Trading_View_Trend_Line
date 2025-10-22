@@ -196,7 +196,7 @@ hline(${adjustedLevels[8]}, "Resistance 4", color=color.new(color.red, 50), line
       if ('script' in result) {
         botResponse = (
           <div>
-            <p className="mb-2">Here is the Pine Script for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
+            <p className="mb-2">Here is the Support & Resistance for <strong>{symbol.toUpperCase()}</strong> based on its current price of ~${numericPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2})}:</p>
             <LevelsDisplay levels={result.levels} />
             <CodeBlock code={result.script} />
           </div>
